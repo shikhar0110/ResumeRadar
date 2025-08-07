@@ -29,15 +29,18 @@ Preferred communication style: Simple, everyday language.
 - Error handling for API failures and rate limiting
 
 **Job Search Integration:**
-- JSearch API (via RapidAPI) for finding relevant job opportunities
+- JSearch API (via RapidAPI) for finding relevant job opportunities  
 - Skills-based job matching with configurable match thresholds (60% or higher)
-- Real-time job search based on extracted skills
+- Country-specific job filtering with support for 12 major countries
+- Real-time job search based on extracted skills and selected country
 
 **User Experience Design:**
 - Progressive loading states with visual feedback during processing
 - Step-by-step progress indicators for multi-stage operations
+- Country selection dropdown for targeted job search
 - Clear error messaging and retry functionality
 - Results displayed with job title, company, location, description, and application links
+- Country-specific "no results" messaging for better user guidance
 
 **Security Considerations:**
 - API keys handled through environment variables or configuration

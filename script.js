@@ -21,6 +21,7 @@ const jobsList = document.getElementById('jobsList');
 const errorSection = document.getElementById('errorSection');
 const errorMessage = document.getElementById('errorMessage');
 const retryBtn = document.getElementById('retryBtn');
+const countrySelect = document.getElementById('countrySelect');
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -106,14 +107,19 @@ async function handleAnalyzeClick() {
         
         // Step 3: Search for jobs
         setLoadingStep(3);
-        const jobs = await searchJobsWithJSearch(extractedSkills);
+        const selectedCountry = countrySelect.value;
+        const jobs = await searchJobsWithJSearch(extractedSkills, selectedCountry);
         
         hideLoading();
         displayResults(extractedSkills, jobs);
         
     } catch (error) {
         hideLoading();
-        console.error('Analysis error:', error);
+        console.error('Analysis error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         const errorMsg = error.message || 'An unexpected error occurred. Please check your API keys and try again.';
         showError(`Analysis failed: ${errorMsg}`);
     }
@@ -244,12 +250,13 @@ ${resumeText}`;
         return skills;
         
     } catch (error) {
+        console.error('Gemini API error details:', error);
         throw new Error(`Failed to extract skills: ${error.message}`);
     }
 }
 
 // Search for jobs using JSearch API
-async function searchJobsWithJSearch(skills) {
+async function searchJobsWithJSearch(skills, country = 'us') {
     // Validate API key
     if (!JSEARCH_API_KEY || JSEARCH_API_KEY === 'your-jsearch-api-key-here' || JSEARCH_API_KEY === 'JSEARCH_KEY_PLACEHOLDER') {
         throw new Error('JSearch API key is not configured. Please set up your API key.');
@@ -258,7 +265,8 @@ async function searchJobsWithJSearch(skills) {
     // Create search query from skills (use first 5 skills for better results)
     const searchQuery = skills.slice(0, 5).join(' OR ');
     
-    const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&page=1&num_pages=1&date_posted=all&remote_jobs_only=false`;
+    // Build URL with country filter
+    const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&page=1&num_pages=1&date_posted=all&remote_jobs_only=false&employment_types=FULLTIME%2CPARTTIME%2CCONTRACTOR&job_requirements=under_3_years_experience%2Cmore_than_3_years_experience%2Cno_experience&country=${country.toUpperCase()}`;
     
     try {
         const response = await fetch(url, {
@@ -300,6 +308,7 @@ async function searchJobsWithJSearch(skills) {
         return jobs;
         
     } catch (error) {
+        console.error('JSearch API error details:', error);
         throw new Error(`Failed to search jobs: ${error.message}`);
     }
 }
@@ -358,13 +367,15 @@ function displayResults(skills, jobs) {
     jobsSection.style.display = 'block';
     jobsList.innerHTML = '';
     
+    const selectedCountryName = countrySelect.options[countrySelect.selectedIndex].text;
+    
     if (jobs.length === 0) {
         const noJobsMessage = document.createElement('div');
         noJobsMessage.className = 'no-jobs-message';
         noJobsMessage.innerHTML = `
             <p style="text-align: center; color: #64748b; padding: 40px;">
                 <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
-                No job matches found at the moment. Try updating your resume with more specific technical skills or check back later.
+                No job matches found in ${selectedCountryName} at the moment. Try selecting a different country or updating your resume with more specific technical skills.
             </p>
         `;
         jobsList.appendChild(noJobsMessage);

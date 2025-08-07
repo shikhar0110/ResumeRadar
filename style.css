@@ -109,6 +109,42 @@ main {
     color: #64748b;
 }
 
+.country-selection {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.country-label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 1rem;
+}
+
+.country-label i {
+    margin-right: 8px;
+    color: #4f46e5;
+}
+
+.country-select {
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    font-size: 1rem;
+    color: #374151;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+    min-width: 200px;
+}
+
+.country-select:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
 .analyze-btn {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
