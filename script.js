@@ -113,8 +113,9 @@ async function handleAnalyzeClick() {
         
     } catch (error) {
         hideLoading();
-        showError(`Analysis failed: ${error.message}`);
         console.error('Analysis error:', error);
+        const errorMsg = error.message || 'An unexpected error occurred. Please check your API keys and try again.';
+        showError(`Analysis failed: ${errorMsg}`);
     }
 }
 
@@ -189,6 +190,11 @@ async function parseDOCX(file) {
 
 // Extract skills using Google Gemini API
 async function extractSkillsWithGemini(resumeText) {
+    // Validate API key
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your-gemini-api-key-here' || GEMINI_API_KEY === 'API_KEY_PLACEHOLDER') {
+        throw new Error('Gemini API key is not configured. Please set up your API key.');
+    }
+
     const prompt = `Analyze the following resume text and extract all technical skills, programming languages, frameworks, tools, technologies, and certifications. Return only the skills as a comma-separated list without any additional text or explanations.
 
 Resume text:
@@ -244,6 +250,11 @@ ${resumeText}`;
 
 // Search for jobs using JSearch API
 async function searchJobsWithJSearch(skills) {
+    // Validate API key
+    if (!JSEARCH_API_KEY || JSEARCH_API_KEY === 'your-jsearch-api-key-here' || JSEARCH_API_KEY === 'JSEARCH_KEY_PLACEHOLDER') {
+        throw new Error('JSearch API key is not configured. Please set up your API key.');
+    }
+
     // Create search query from skills (use first 5 skills for better results)
     const searchQuery = skills.slice(0, 5).join(' OR ');
     
@@ -417,13 +428,15 @@ function showError(message) {
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Resume Skills Analyzer initialized');
+    console.log('Gemini API Key configured:', GEMINI_API_KEY !== 'your-gemini-api-key-here' && GEMINI_API_KEY !== 'API_KEY_PLACEHOLDER');
+    console.log('JSearch API Key configured:', JSEARCH_API_KEY !== 'your-jsearch-api-key-here' && JSEARCH_API_KEY !== 'JSEARCH_KEY_PLACEHOLDER');
     
     // Check if API keys are configured
-    if (GEMINI_API_KEY === 'your-gemini-api-key-here') {
+    if (GEMINI_API_KEY === 'your-gemini-api-key-here' || GEMINI_API_KEY === 'API_KEY_PLACEHOLDER') {
         console.warn('Please configure your Gemini API key');
     }
     
-    if (JSEARCH_API_KEY === 'your-jsearch-api-key-here') {
+    if (JSEARCH_API_KEY === 'your-jsearch-api-key-here' || JSEARCH_API_KEY === 'JSEARCH_KEY_PLACEHOLDER') {
         console.warn('Please configure your JSearch API key');
     }
 });
