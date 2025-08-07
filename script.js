@@ -22,6 +22,15 @@ const errorSection = document.getElementById('errorSection');
 const errorMessage = document.getElementById('errorMessage');
 const retryBtn = document.getElementById('retryBtn');
 const countrySelect = document.getElementById('countrySelect');
+const countryInfo = document.getElementById('countryInfo');
+const countryText = document.getElementById('countryText');
+const changeCountryBtn = document.getElementById('changeCountryBtn');
+const countryOverride = document.querySelector('.country-override');
+
+// Global variables for country detection
+let detectedCountry = 'us'; // Default fallback
+let countryName = 'United States';
+let isCountryDetected = false;
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -30,6 +39,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 fileInput.addEventListener('change', handleFileSelection);
 analyzeBtn.addEventListener('click', handleAnalyzeClick);
 retryBtn.addEventListener('click', handleRetryClick);
+changeCountryBtn.addEventListener('click', handleChangeCountryClick);
+countrySelect.addEventListener('change', handleCountrySelectChange);
 
 // File selection handler
 function handleFileSelection(event) {
@@ -107,8 +118,8 @@ async function handleAnalyzeClick() {
         
         // Step 3: Search for jobs
         setLoadingStep(3);
-        const selectedCountry = countrySelect.value;
-        const jobs = await searchJobsWithJSearch(extractedSkills, selectedCountry);
+        const searchCountry = countrySelect.style.display !== 'none' ? countrySelect.value : detectedCountry;
+        const jobs = await searchJobsWithJSearch(extractedSkills, searchCountry);
         
         hideLoading();
         displayResults(extractedSkills, jobs);
@@ -367,7 +378,9 @@ function displayResults(skills, jobs) {
     jobsSection.style.display = 'block';
     jobsList.innerHTML = '';
     
-    const selectedCountryName = countrySelect.options[countrySelect.selectedIndex].text;
+    const selectedCountryName = countrySelect.style.display !== 'none' ? 
+        countrySelect.options[countrySelect.selectedIndex].text : 
+        countryName;
     
     if (jobs.length === 0) {
         const noJobsMessage = document.createElement('div');
@@ -436,6 +449,91 @@ function showError(message) {
     }
 }
 
+// Country code mapping
+const countryMapping = {
+    'US': { code: 'us', name: 'United States' },
+    'CA': { code: 'ca', name: 'Canada' },
+    'GB': { code: 'gb', name: 'United Kingdom' },
+    'UK': { code: 'gb', name: 'United Kingdom' },
+    'AU': { code: 'au', name: 'Australia' },
+    'DE': { code: 'de', name: 'Germany' },
+    'FR': { code: 'fr', name: 'France' },
+    'NL': { code: 'nl', name: 'Netherlands' },
+    'SG': { code: 'sg', name: 'Singapore' },
+    'IN': { code: 'in', name: 'India' },
+    'JP': { code: 'jp', name: 'Japan' },
+    'BR': { code: 'br', name: 'Brazil' },
+    'MX': { code: 'mx', name: 'Mexico' }
+};
+
+// Detect user's country based on IP
+async function detectUserCountry() {
+    try {
+        countryText.textContent = 'Detecting your location...';
+        
+        // Try multiple IP geolocation services for better reliability
+        const services = [
+            'https://ipapi.co/json/',
+            'http://ip-api.com/json/',
+            'https://ipinfo.io/json'
+        ];
+        
+        for (const service of services) {
+            try {
+                const response = await fetch(service);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Extract country code from different service response formats
+                    let countryCode = data.country || data.country_code || data.countryCode;
+                    
+                    if (countryCode && countryMapping[countryCode.toUpperCase()]) {
+                        const country = countryMapping[countryCode.toUpperCase()];
+                        detectedCountry = country.code;
+                        countryName = country.name;
+                        isCountryDetected = true;
+                        
+                        // Update UI
+                        countryText.textContent = `Jobs will be searched in: ${countryName}`;
+                        countryInfo.classList.add('detected');
+                        countryOverride.style.display = 'block';
+                        
+                        // Set the select value to match detected country
+                        countrySelect.value = detectedCountry;
+                        
+                        console.log(`Country detected: ${countryName} (${detectedCountry})`);
+                        return;
+                    }
+                }
+            } catch (serviceError) {
+                console.warn(`Failed to get location from ${service}:`, serviceError);
+                continue;
+            }
+        }
+        
+        throw new Error('All geolocation services failed');
+        
+    } catch (error) {
+        console.warn('Country detection failed:', error);
+        // Fallback to default country
+        countryText.textContent = `Jobs will be searched in: ${countryName} (default)`;
+        countryInfo.classList.add('detected');
+        countryOverride.style.display = 'block';
+    }
+}
+
+// Handle change country button click
+function handleChangeCountryClick() {
+    countrySelect.style.display = countrySelect.style.display === 'none' ? 'inline-block' : 'none';
+}
+
+// Handle country selection change
+function handleCountrySelectChange() {
+    const selectedCountry = countrySelect.options[countrySelect.selectedIndex];
+    countryText.textContent = `Jobs will be searched in: ${selectedCountry.text}`;
+    countryName = selectedCountry.text;
+}
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Resume Skills Analyzer initialized');
@@ -450,4 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (JSEARCH_API_KEY === 'your-jsearch-api-key-here' || JSEARCH_API_KEY === 'JSEARCH_KEY_PLACEHOLDER') {
         console.warn('Please configure your JSearch API key');
     }
+    
+    // Start country detection
+    detectUserCountry();
 });
