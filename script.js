@@ -3,9 +3,9 @@ let selectedFile = null;
 let extractedText = '';
 let extractedSkills = [];
 
-// API Configuration - Get from environment variables
-const GEMINI_API_KEY = window.GEMINI_API_KEY || 'your-gemini-api-key-here';
-const JSEARCH_API_KEY = window.JSEARCH_API_KEY || 'your-jsearch-api-key-here';
+// API Configuration - These will be set by the user in the UI
+let GEMINI_API_KEY = '';
+let JSEARCH_API_KEY = '';
 
 // DOM Elements
 const fileInput = document.getElementById('resumeFile');
@@ -27,6 +27,22 @@ const countryText = document.getElementById('countryText');
 const changeCountryBtn = document.getElementById('changeCountryBtn');
 const countryOverride = document.querySelector('.country-override');
 
+// Settings modal elements
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const geminiApiKeyInput = document.getElementById('geminiApiKey');
+const jsearchApiKeyInput = document.getElementById('jsearchApiKey');
+const showGeminiKeyBtn = document.getElementById('showGeminiKey');
+const showJSearchKeyBtn = document.getElementById('showJSearchKey');
+const saveApiKeysBtn = document.getElementById('saveApiKeysBtn');
+const cancelApiKeysBtn = document.getElementById('cancelApiKeysBtn');
+const geminiStatus = document.getElementById('geminiStatus');
+const jsearchStatus = document.getElementById('jsearchStatus');
+
+// Dark mode elements
+const darkModeBtn = document.getElementById('darkModeBtn');
+
 // Global variables for country detection
 let detectedCountry = 'us'; // Default fallback
 let countryName = 'United States';
@@ -41,6 +57,175 @@ analyzeBtn.addEventListener('click', handleAnalyzeClick);
 retryBtn.addEventListener('click', handleRetryClick);
 changeCountryBtn.addEventListener('click', handleChangeCountryClick);
 countrySelect.addEventListener('change', handleCountrySelectChange);
+
+// Settings modal event listeners
+settingsBtn.addEventListener('click', openSettingsModal);
+closeModalBtn.addEventListener('click', closeSettingsModal);
+saveApiKeysBtn.addEventListener('click', saveApiKeys);
+cancelApiKeysBtn.addEventListener('click', closeSettingsModal);
+showGeminiKeyBtn.addEventListener('click', () => togglePasswordVisibility(geminiApiKeyInput, showGeminiKeyBtn));
+showJSearchKeyBtn.addEventListener('click', () => togglePasswordVisibility(jsearchApiKeyInput, showJSearchKeyBtn));
+
+// Dark mode event listener
+darkModeBtn.addEventListener('click', toggleDarkMode);
+
+// Close modal when clicking outside
+settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+        closeSettingsModal();
+    }
+});
+
+// Dark Mode Functions
+function toggleDarkMode() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Update button icon
+    const icon = darkModeBtn.querySelector('i');
+    if (newTheme === 'dark') {
+        icon.className = 'fas fa-sun';
+        darkModeBtn.title = 'Switch to Light Mode';
+    } else {
+        icon.className = 'fas fa-moon';
+        darkModeBtn.title = 'Switch to Dark Mode';
+    }
+    
+    // Add animation to the button
+    darkModeBtn.style.transform = 'rotate(360deg)';
+    setTimeout(() => {
+        darkModeBtn.style.transform = 'translateY(-2px)';
+    }, 300);
+}
+
+// Settings Modal Functions
+function openSettingsModal() {
+    // Load saved API keys
+    geminiApiKeyInput.value = GEMINI_API_KEY;
+    jsearchApiKeyInput.value = JSEARCH_API_KEY;
+    
+    // Update status indicators
+    updateApiStatus();
+    
+    settingsModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSettingsModal() {
+    settingsModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function togglePasswordVisibility(input, button) {
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        input.type = 'password';
+        button.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+}
+
+function updateApiStatus() {
+    // Update Gemini status
+    if (GEMINI_API_KEY && GEMINI_API_KEY.length > 10) {
+        geminiStatus.textContent = 'Configured';
+        geminiStatus.className = 'status-badge status-configured';
+    } else {
+        geminiStatus.textContent = 'Not configured';
+        geminiStatus.className = 'status-badge status-unknown';
+    }
+    
+    // Update JSearch status
+    if (JSEARCH_API_KEY && JSEARCH_API_KEY.length > 10) {
+        jsearchStatus.textContent = 'Configured';
+        jsearchStatus.className = 'status-badge status-configured';
+    } else {
+        jsearchStatus.textContent = 'Not configured';
+        jsearchStatus.className = 'status-badge status-unknown';
+    }
+}
+
+function saveApiKeys() {
+    const newGeminiKey = geminiApiKeyInput.value.trim();
+    const newJSearchKey = jsearchApiKeyInput.value.trim();
+    
+    // Validate API keys
+    if (!newGeminiKey || newGeminiKey.length < 10) {
+        alert('Please enter a valid Gemini API key');
+        return;
+    }
+    
+    if (!newJSearchKey || newJSearchKey.length < 10) {
+        alert('Please enter a valid JSearch API key');
+        return;
+    }
+    
+    // Save API keys
+    GEMINI_API_KEY = newGeminiKey;
+    JSEARCH_API_KEY = newJSearchKey;
+    
+    // Save to localStorage
+    localStorage.setItem('geminiApiKey', GEMINI_API_KEY);
+    localStorage.setItem('jsearchApiKey', JSEARCH_API_KEY);
+    
+    // Update status
+    updateApiStatus();
+    
+    // Close modal
+    closeSettingsModal();
+    
+    // Show success message
+    showSuccessMessage('API keys saved successfully!');
+}
+
+function showSuccessMessage(message) {
+    // Create a temporary success message
+    const successDiv = document.createElement('div');
+    successDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1001;
+        font-weight: 600;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    successDiv.textContent = message;
+    
+    document.body.appendChild(successDiv);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        successDiv.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.parentNode.removeChild(successDiv);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Add CSS animations for success message
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
 
 // File selection handler
 function handleFileSelection(event) {
@@ -94,6 +279,12 @@ function updateUI() {
 // Analyze button click handler
 async function handleAnalyzeClick() {
     if (!selectedFile) return;
+    
+    // Check if API keys are configured
+    if (!GEMINI_API_KEY || !JSEARCH_API_KEY) {
+        showError('Please configure your API keys first. Click the settings button to add your Gemini and JSearch API keys.');
+        return;
+    }
     
     try {
         hideError();
@@ -205,26 +396,50 @@ async function parseDOCX(file) {
     });
 }
 
-// Extract skills using server-side proxy
+// Extract skills using Gemini API directly
 async function extractSkillsWithGemini(resumeText) {
     try {
-        const response = await fetch('/api/extract-skills', {
+        const prompt = `Analyze the following resume text and extract all technical skills, programming languages, frameworks, tools, technologies, and certifications. Return only the skills as a comma-separated list without any additional text or explanations.
+
+Resume text:
+${resumeText}`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                resumeText: resumeText
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.1,
+                    topK: 1,
+                    topP: 1,
+                    maxOutputTokens: 2048,
+                }
             })
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `Server error: ${response.status}`);
+            const errorMsg = errorData.error?.message || `Gemini API error: ${response.status}`;
+            throw new Error(errorMsg);
         }
 
         const data = await response.json();
-        return data.skills || [];
+        if (data.candidates && data.candidates[0]?.content) {
+            const skillsText = data.candidates[0].content.parts[0].text;
+            
+            // Parse skills
+            const skills = skillsText.split(',').map(skill => skill.trim()).filter(skill => skill && skill.length < 50);
+            return skills.slice(0, 20); // Limit to 20 skills
+        } else {
+            throw new Error('Invalid response from Gemini API');
+        }
         
     } catch (error) {
         console.error('Skill extraction error details:', error);
@@ -232,27 +447,46 @@ async function extractSkillsWithGemini(resumeText) {
     }
 }
 
-// Search for jobs using server-side proxy
+// Search for jobs using JSearch API directly
 async function searchJobsWithJSearch(skills, country = 'us') {
     try {
-        const response = await fetch('/api/search-jobs', {
-            method: 'POST',
+        // Create search query from top 5 skills
+        const searchQuery = skills.slice(0, 5).join(' OR ');
+        
+        const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&page=1&num_pages=1&date_posted=all&remote_jobs_only=false&employment_types=FULLTIME%2CPARTTIME%2CCONTRACTOR&job_requirements=under_3_years_experience%2Cmore_than_3_years_experience%2Cno_experience&country=${country.toUpperCase()}`;
+        
+        const response = await fetch(url, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                skills: skills,
-                country: country
-            })
+                'X-RapidAPI-Key': JSEARCH_API_KEY,
+                'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
+            }
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `Server error: ${response.status}`);
+            const errorMsg = errorData.message || `JSearch API error: ${response.status}`;
+            throw new Error(errorMsg);
         }
 
         const data = await response.json();
-        return data.jobs || [];
+        const jobs = [];
+        
+        if (data.data) {
+            for (const job of data.data.slice(0, 10)) {
+                if (job.job_title && job.employer_name) {
+                    jobs.push({
+                        title: job.job_title,
+                        company: job.employer_name,
+                        location: job.job_city ? `${job.job_city}, ${job.job_state}` : (job.job_country || 'Remote'),
+                        description: job.job_description ? (job.job_description.substring(0, 300) + '...') : 'No description available.',
+                        link: job.job_apply_link || job.job_google_link || '#'
+                    });
+                }
+            }
+        }
+        
+        return jobs;
         
     } catch (error) {
         console.error('Job search error details:', error);
@@ -472,16 +706,38 @@ function handleCountrySelectChange() {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Resume Skills Analyzer initialized');
-    console.log('Gemini API Key configured:', GEMINI_API_KEY !== 'your-gemini-api-key-here' && GEMINI_API_KEY !== 'API_KEY_PLACEHOLDER');
-    console.log('JSearch API Key configured:', JSEARCH_API_KEY !== 'your-jsearch-api-key-here' && JSEARCH_API_KEY !== 'JSEARCH_KEY_PLACEHOLDER');
+    console.log('Resume Radar initialized');
+    
+    // Load saved theme from localStorage
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Update dark mode button icon
+    const icon = darkModeBtn.querySelector('i');
+    if (savedTheme === 'dark') {
+        icon.className = 'fas fa-sun';
+        darkModeBtn.title = 'Switch to Light Mode';
+    } else {
+        icon.className = 'fas fa-moon';
+        darkModeBtn.title = 'Switch to Dark Mode';
+    }
+    
+    // Load saved API keys from localStorage
+    GEMINI_API_KEY = localStorage.getItem('geminiApiKey') || '';
+    JSEARCH_API_KEY = localStorage.getItem('jsearchApiKey') || '';
+    
+    console.log('Gemini API Key configured:', GEMINI_API_KEY && GEMINI_API_KEY.length > 10);
+    console.log('JSearch API Key configured:', JSEARCH_API_KEY && JSEARCH_API_KEY.length > 10);
+    
+    // Update API status indicators
+    updateApiStatus();
     
     // Check if API keys are configured
-    if (GEMINI_API_KEY === 'your-gemini-api-key-here' || GEMINI_API_KEY === 'API_KEY_PLACEHOLDER') {
+    if (!GEMINI_API_KEY || GEMINI_API_KEY.length < 10) {
         console.warn('Please configure your Gemini API key');
     }
     
-    if (JSEARCH_API_KEY === 'your-jsearch-api-key-here' || JSEARCH_API_KEY === 'JSEARCH_KEY_PLACEHOLDER') {
+    if (!JSEARCH_API_KEY || JSEARCH_API_KEY.length < 10) {
         console.warn('Please configure your JSearch API key');
     }
     
