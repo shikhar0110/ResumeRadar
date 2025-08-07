@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Skills Analyzer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- PDF.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Mammoth.js CDN for DOCX parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Environment variables configuration -->
+    <script>
+        // Make environment variables available to the frontend
+        window.GEMINI_API_KEY = 'API_KEY_PLACEHOLDER';
+        window.JSEARCH_API_KEY = 'JSEARCH_KEY_PLACEHOLDER';
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-file-alt"></i> Resume Skills Analyzer</h1>
+            <p>Upload your resume to discover your skills and find matching job opportunities</p>
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <div class="file-input-container">
+                    <input type="file" id="resumeFile" accept=".pdf,.docx" />
+                    <label for="resumeFile" class="file-label">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span class="file-text">Choose Resume File (PDF or DOCX)</span>
+                    </label>
+                    <div class="file-info">
+                        <small>Maximum file size: 5MB</small>
+                    </div>
+                </div>
+                
+                <button id="analyzeBtn" class="analyze-btn" disabled>
+                    <i class="fas fa-search"></i>
+                    Analyze Resume
+                </button>
+                
+                <div id="fileError" class="error-message"></div>
+            </section>
+
+            <section class="results-section">
+                <div id="loadingState" class="loading-state" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-steps">
+                        <div class="step active" id="step1">
+                            <i class="fas fa-file-text"></i>
+                            <span>Parsing resume...</span>
+                        </div>
+                        <div class="step" id="step2">
+                            <i class="fas fa-brain"></i>
+                            <span>Extracting skills...</span>
+                        </div>
+                        <div class="step" id="step3">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Finding jobs...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="skillsSection" class="skills-section" style="display: none;">
+                    <h3><i class="fas fa-cogs"></i> Extracted Skills</h3>
+                    <div id="skillsList" class="skills-list"></div>
+                </div>
+
+                <div id="jobsSection" class="jobs-section" style="display: none;">
+                    <h3><i class="fas fa-briefcase"></i> Matching Job Opportunities</h3>
+                    <div id="jobsList" class="jobs-list"></div>
+                </div>
+
+                <div id="errorSection" class="error-section" style="display: none;">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
+                    <div id="errorMessage" class="error-content"></div>
+                    <button id="retryBtn" class="retry-btn">
+                        <i class="fas fa-redo"></i>
+                        Try Again
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
