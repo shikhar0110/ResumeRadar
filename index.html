@@ -27,10 +27,6 @@
                     <button id="darkModeBtn" class="dark-mode-btn" title="Toggle Dark Mode">
                         <i class="fas fa-moon"></i>
                     </button>
-                    <button id="settingsBtn" class="settings-btn" title="Configure API Keys">
-                        <i class="fas fa-cog"></i>
-                        Settings
-                    </button>
                 </div>
             </div>
         </header>
@@ -48,31 +44,9 @@
                     </div>
                 </div>
                 
-                <div class="country-detection">
-                    <div id="countryInfo" class="country-info">
-                        <i class="fas fa-globe"></i>
-                        <span id="countryText">Detecting your location for relevant job search...</span>
-                    </div>
-                    <div class="country-override" style="display: none;">
-                        <button id="changeCountryBtn" class="change-country-btn">
-                            <i class="fas fa-edit"></i>
-                            Change Search Country
-                        </button>
-                        <select id="countrySelect" class="country-select" style="display: none;">
-                            <option value="us">United States</option>
-                            <option value="ca">Canada</option>
-                            <option value="gb">United Kingdom</option>
-                            <option value="au">Australia</option>
-                            <option value="de">Germany</option>
-                            <option value="fr">France</option>
-                            <option value="nl">Netherlands</option>
-                            <option value="sg">Singapore</option>
-                            <option value="in">India</option>
-                            <option value="jp">Japan</option>
-                            <option value="br">Brazil</option>
-                            <option value="mx">Mexico</option>
-                        </select>
-                    </div>
+                <div class="country-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Searching jobs in India</span>
                 </div>
 
                 <button id="analyzeBtn" class="analyze-btn" disabled>
@@ -124,73 +98,7 @@
         </main>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-cog"></i> API Configuration</h2>
-                <button id="closeModalBtn" class="close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="api-section">
-                    <h3><i class="fas fa-robot"></i> Gemini API Key</h3>
-                    <p>Required for AI-powered skill extraction from resumes.</p>
-                    <div class="input-group">
-                        <input type="password" id="geminiApiKey" placeholder="Enter your Gemini API key" />
-                        <button id="showGeminiKey" class="show-key-btn" type="button">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="api-links">
-                        <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
-                            <i class="fas fa-external-link-alt"></i> Get Gemini API Key
-                        </a>
-                    </div>
-                </div>
-
-                <div class="api-section">
-                    <h3><i class="fas fa-search"></i> JSearch API Key</h3>
-                    <p>Required for job search functionality.</p>
-                    <div class="input-group">
-                        <input type="password" id="jsearchApiKey" placeholder="Enter your JSearch API key" />
-                        <button id="showJSearchKey" class="show-key-btn" type="button">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="api-links">
-                        <a href="https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch" target="_blank" rel="noopener noreferrer">
-                            <i class="fas fa-external-link-alt"></i> Get JSearch API Key
-                        </a>
-                    </div>
-                </div>
-
-                <div class="api-status">
-                    <h3><i class="fas fa-info-circle"></i> Status</h3>
-                    <div id="apiStatus" class="status-indicators">
-                        <div class="status-item">
-                            <span class="status-label">Gemini API:</span>
-                            <span id="geminiStatus" class="status-badge status-unknown">Not configured</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">JSearch API:</span>
-                            <span id="jsearchStatus" class="status-badge status-unknown">Not configured</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="saveApiKeysBtn" class="save-btn">
-                    <i class="fas fa-save"></i>
-                    Save Configuration
-                </button>
-                <button id="cancelApiKeysBtn" class="cancel-btn">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
+    
 
     <script src="script.js"></script>
 </body>
